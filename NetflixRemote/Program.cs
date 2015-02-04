@@ -16,7 +16,11 @@ namespace PauseServer
        static extern int SetForegroundWindow(IntPtr hWnd);
        [DllImport("User32.dll")]
        static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
-    
+       [DllImport("user32.dll")]
+       private static extern int SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
+       [DllImport("kernel32.dll")]
+       static extern IntPtr GetConsoleWindow();
+
     // Incoming data from the client.
     public static string data = null;
 
@@ -68,6 +72,16 @@ namespace PauseServer
                         VolDown();
                         break;
                     }
+                    if (data.IndexOf("r") > -1)
+                    {
+                        Refresh();
+                        break;
+                    }
+                    if (data.IndexOf("o") > -1)
+                    {
+                        TurnOffScreen();
+                        break;
+                    }
                 }
 
                 // Show the data on the console.
@@ -105,6 +119,19 @@ namespace PauseServer
         {
             keybd_event((byte)Keys.VolumeDown, 0, 0, 0);
         }
+    }
+
+    private static void Refresh()
+    {
+        SendKeys.SendWait("{F5}");
+    }
+
+    private static void TurnOffScreen()
+    {
+        const int SC_MONITORPOWER = 0xF170;
+        const int WM_SYSCOMMAND = 0x0112;
+        const int MONITOR_OFF = 2;
+        SendMessage(GetConsoleWindow(), WM_SYSCOMMAND, (IntPtr)SC_MONITORPOWER, (IntPtr)MONITOR_OFF);
     }
 
     public static int Main(String[] args) {
